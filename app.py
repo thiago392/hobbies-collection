@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import requests
 
 app = Flask(__name__)
@@ -21,5 +21,30 @@ def index():
 
     return render_template('index.html', livros=livros)
 
+@app.route('/delete/<int:id>')
+def delete(id):
+    requests.delete(f'{API_URL}/{id}')
+    return redirect('/')
+
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+def update (id):
+    if request.method == 'POST':
+        titulo = request.form['titulo']
+        autor =request.form['autor']
+        requests.put(
+            f' {API_URL}/{id}',
+            json={'titulo' : titulo, 'autor' : autor}
+        )
+        return  redirect('/')
+        
+    response = requests.get(f'{API_URL}/{id} ')
+    if response.status_code == 200:
+        livro = response.json()
+    else:
+        livro = {}
+
+    return render_template('update.html', livro=livro)
+
 if __name__ == '__main__':
     app.run(port=5001, debug=True)
+
